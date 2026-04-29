@@ -76,30 +76,156 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Делаем кнопки адаптивными под любой экран
-window.addEventListener('load', function() {
-    const img = document.querySelector('img');
-    const areas = document.querySelectorAll('area');
+// ========== ОСНОВНАЯ ЛОГИКА С ОБВОДКОЙ ==========
+// Состояние выбора
+let selectedGender = null;
+let selectedAge = null;
+
+// Получаем контейнер и картинку
+const container = document.querySelector('div[style*="position: relative"]');
+const image = document.querySelector('img');
+
+// Функция создания обводки (работает с area)
+function addOutline(areaElement, color) {
+    removeOutline(areaElement);
     
-    function resizeAreas() {
-        const scaleX = img.clientWidth / img.naturalWidth;
-        const scaleY = img.clientHeight / img.naturalHeight;
-        
-        areas.forEach(area => {
-            const original = area.getAttribute('data-original');
-            if (original) {
-                const coords = original.split(',').map(Number);
-                const newCoords = coords.map((c, i) => 
-                    Math.round(c * (i % 2 === 0 ? scaleX : scaleY))
-                ).join(',');
-                area.coords = newCoords;
-            } else {
-                area.setAttribute('data-original', area.coords);
-            }
-        });
+    if (!areaElement || !areaElement.coords) return;
+    
+    const coords = areaElement.coords.split(',').map(Number);
+    const imgRect = image.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    const scaleX = imgRect.width / image.naturalWidth;
+    const scaleY = imgRect.height / image.naturalHeight;
+    
+    const left = imgRect.left + (coords[0] * scaleX);
+    const top = imgRect.top + (coords[1] * scaleY);
+    const width = (coords[2] - coords[0]) * scaleX;
+    const height = (coords[3] - coords[1]) * scaleY;
+    
+    const outlineDiv = document.createElement('div');
+    outlineDiv.className = `outline-${areaElement.className}`;
+    outlineDiv.style.position = 'absolute';
+    outlineDiv.style.left = left + 'px';
+    outlineDiv.style.top = top + 'px';
+    outlineDiv.style.width = width + 'px';
+    outlineDiv.style.height = height + 'px';
+    outlineDiv.style.border = `3px solid ${color}`;
+    outlineDiv.style.borderRadius = '8px';
+    outlineDiv.style.pointerEvents = 'none';
+    outlineDiv.style.zIndex = '1000';
+    outlineDiv.style.boxShadow = `0 0 8px ${color}`;
+    outlineDiv.style.transition = 'all 0.2s ease';
+    
+    container.appendChild(outlineDiv);
+}
+
+// Функция удаления обводки
+function removeOutline(areaElement) {
+    if (!areaElement || !areaElement.className) return;
+    const existingOutline = document.querySelector(`.outline-${areaElement.className}`);
+    if (existingOutline) existingOutline.remove();
+}
+
+// Функция удаления всех обводок
+function removeAllOutlines() {
+    document.querySelectorAll('[class^="outline-"]').forEach(el => el.remove());
+}
+
+// Получаем все кнопки
+const maleBtn = document.querySelector('.male');
+const femaleBtn = document.querySelector('.female');
+const age18 = document.querySelector('.age18');
+const age18_20 = document.querySelector('.age18-20');
+const age20plus = document.querySelector('.ageMore20');
+const startBtn = document.querySelector('.startDialog');
+
+// Функция сброса обводки у всех кнопок пола
+function resetGenderHighlight() {
+    removeOutline(maleBtn);
+    removeOutline(femaleBtn);
+}
+
+// Функция сброса обводки у всех кнопок возраста
+function resetAgeHighlight() {
+    removeOutline(age18);
+    removeOutline(age18_20);
+    removeOutline(age20plus);
+}
+
+// Выбор пола
+maleBtn.onclick = function(e) {
+    e.preventDefault();
+    resetGenderHighlight();
+    selectedGender = 'male';
+    addOutline(maleBtn, '#0400ff');
+    console.log('Выбран: Мужской');
+};
+
+femaleBtn.onclick = function(e) {
+    e.preventDefault();
+    resetGenderHighlight();
+    selectedGender = 'female';
+    addOutline(femaleBtn, '#ff00ff');
+    console.log('Выбран: Женский');
+    alert('Неправильный выбор');
+    selectedGender = null;
+    resetGenderHighlight();
+};
+
+// Выбор возраста
+age18.onclick = function(e) {
+    e.preventDefault();
+    resetAgeHighlight();
+    selectedAge = '18';
+    addOutline(age18, '#ff00ff');
+    console.log('Выбран: 18-');
+    alert('Неправильный выбор');
+    selectedAge = null;
+    resetAgeHighlight();
+};
+
+age18_20.onclick = function(e) {
+    e.preventDefault();
+    resetAgeHighlight();
+    selectedAge = '18-20';
+    addOutline(age18_20, '#0400ff');
+    console.log('Выбран: 18-20');
+};
+
+age20plus.onclick = function(e) {
+    e.preventDefault();
+    resetAgeHighlight();
+    selectedAge = '20+';
+    addOutline(age20plus, '#ff00ff');
+    console.log('Выбран: 20+');
+    alert('Неправильный выбор');
+    selectedAge = null;
+    resetAgeHighlight();
+};
+
+// Кнопка старта
+startBtn.onclick = function(e) {
+    e.preventDefault();
+    
+    if (selectedGender === 'male' && selectedAge === '18-20') {
+        window.location.href = './подглава1.3.1.html';
+    } else {
+        alert('Неправильный выбор');
+        selectedGender = null;
+        selectedAge = null;
+        removeAllOutlines();
     }
-    
-    img.onload = resizeAreas;
-    window.onresize = resizeAreas;
-    resizeAreas();
+};
+
+// Обновляем обводку при изменении размера окна
+window.addEventListener('resize', function() {
+    if (selectedGender === 'male') {
+        removeOutline(maleBtn);
+        addOutline(maleBtn, '#00ff00');
+    }
+    if (selectedAge === '18-20') {
+        removeOutline(age18_20);
+        addOutline(age18_20, '#00ff00');
+    }
 });
