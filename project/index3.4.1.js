@@ -74,7 +74,7 @@ window.addEventListener('load', function() {
     // Функция проверки - все ли кнопки выбраны
     function checkAllSelected() {
         if (selectedButtons.length === allAreas.length) {
-            alert('Все кнопки выбраны! Переход...');
+            alert('Все деньги собраны. Отлично! Переход...');
             window.location.href = './подглава3.4.2.html';
         }
     }
